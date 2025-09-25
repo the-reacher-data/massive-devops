@@ -1,0 +1,277 @@
+name: 🚀 Release Workflow
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use"
+        required: false
+        default: "3.11"
+        type: string
+      github-sha:
+        description: "GitHub SHA that triggered the release"
+        required: true
+        type: string
+      pypi-url:
+        description: "PyPI repository URL"
+        required: false
+        default: "https://upload.pypi.org/legacy/"
+        type: string
+      pypi-user-name:
+        description: "PyPI username (usually __token__)"
+        required: false
+        default: "__token__"
+        type: string
+      test-dir:
+        description: "Directory containing tests"
+        required: false
+        default: "src/tests"
+        type: string
+      coverage-threshold:
+        description: "Coverage threshold (percentage)"
+        required: false
+        default: "80"
+        type: string
+      src-dir:
+        description: "Source directory"
+        required: false
+        default: "src"
+        type: string
+      docs-dir:
+        description: "Docs directory to upload"
+        required: false
+        default: "docs"
+        type: string
+      src-dir-docs:
+        description: "Source directory to files py"
+        required: false
+        default: "src"
+        type: string
+    secrets:
+      pypi-secret:
+        description: "PyPI secret/token"
+        required: true
+      github-token:
+        description: "GitHub token"
+        required: true
+      codecov-token:
+        description: "Codecov token"
+        required: false
+
+jobs:
+  detect-branch:
+    name: 🔎 Detect Branch from PR Comment
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract.outputs.branch }}
+      pr-number: ${{ steps.extract-pr-number.outputs.pr-number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Find merged PR number
+        id: extract-pr-number
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.github-token }}
+        run: |
+          echo "🔎 Searching PR for squash commit ${{ inputs.github-sha }}"
+          pr_number=$(gh pr list \
+          --repo ${{ github.repository }} \
+          --base main \
+          --state closed \
+          --json number,mergeCommit \
+          --jq '.[] | select(.mergeCommit.oid=="'${{ inputs.github-sha }}'") | .number')
+
+          if [ -z "$pr_number" ]; then
+            echo "⚠️ No PR found with mergeCommit=${{ inputs.github-sha }}"
+            echo "🔄 Falling back to latest closed PR targeting main..."
+            pr_number=$(gh pr list \
+            --repo ${{ github.repository }} \
+            --base main \
+            --state closed \
+            --limit 1 \
+            --json number \
+            --jq '.[0].number')
+          fi
+
+          if [ -z "$pr_number" ]; then
+            echo "❌ Still no PR found. Exiting."
+            exit 1
+          fi
+
+          echo "✅ Found PR: $pr_number"
+          echo "pr-number=$pr_number" >> $GITHUB_OUTPUT
+
+      - id: extract
+        name: Find branch from PR comment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.github-token }}
+        run: |
+          echo "Fetching PR (${{ steps.extract-pr-number.outputs.pr-number }}) comments..."
+          comments=$(gh api repos/${{ github.repository }}/issues/${{ steps.extract-pr-number.outputs.pr-number }}/comments --jq '.[].body')
+          branch=$(echo "$comments" | grep -o '<!-- branch-source:[^>]* -->' | sed -E 's/<!-- branch-source:(.*) -->/\1/' | tail -n 1)
+          echo "Comments: $comments"
+          if [ -z "$branch" ]; then
+            echo "❌ No branch-source tag found in PR ${{ steps.extract-pr-number.outputs.pr-number }}"
+            exit 1
+          fi
+          echo "✅ Found branch: $branch"
+          echo "branch=$branch" >> $GITHUB_OUTPUT
+
+  test:
+    name: 🧪 Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: [detect-branch]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras --group dev
+
+      - name: Pytest Comment
+        uses: ./actions/python/pytest-comment
+        with:
+          github-token: ${{ secrets.github-token }}
+          test-dir: ${{ inputs.test-dir }}
+          src-dir: ${{ inputs.src-dir }}
+          coverage-threshold: ${{ inputs.coverage-threshold }}
+          codecov-token: ${{ secrets.codecov-token }}
+
+  build_package:
+    name: 📝 Generate Version
+    runs-on: ubuntu-latest
+    needs: [detect-branch, test]
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      deploy: ${{ steps.version.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras --group dev
+
+      - name: Get Version Branch Semantic
+        id: version
+        uses: ./actions/devops/versioning-branch-semantic
+        with:
+          branch: ${{ needs.detect-branch.outputs.branch }}
+          prerelease: "false"
+
+      - name: Generate Changelog
+        uses: ./actions/devops/changelog-conventional-commit
+        with:
+          mode: "release"
+          branch: ${{ needs.detect-branch.outputs.branch }}
+          version: ${{ steps.version.outputs.version }}
+          pr-number: ${{ needs.detect-branch.outputs.pr-number }}
+          output: version.md
+
+      - name: 🚀 Publish Package
+        if: ${{ steps.version.outputs.deploy == 'true' }}
+        uses: ./actions/python/publish-package
+        with:
+          pypi-url: ${{ inputs.pypi-url }}
+          pypi-user-name: ${{ inputs.pypi-user-name }}
+          pypi-secret: ${{ secrets.pypi-secret }}
+
+      - name: Commit version bump and changelog
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          PR_NUMBER=${{ needs.detect-branch.outputs.pr-number }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add pyproject.toml CHANGELOG.md || true
+
+          if [[ "$GITHUB_RUN_ATTEMPT" -gt 1 ]]; then
+              echo "🔄 This is a re-run (attempt $GITHUB_RUN_ATTEMPT)"
+              exit 0
+          fi
+          if [[ "$VERSION" != "UNRELEASED" ]]; then
+            git commit -m "chore(release): ${VERSION} (#${PR_NUMBER})"
+          else
+            git commit -m "docs(changelog): update changelog (#${PR_NUMBER})"
+          fi
+          git push
+          echo "✅ Committed with changes"
+
+  publish_docs:
+    name: 📚 Publish Docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.docs.outputs.page-url }}
+    needs: [build_package]
+    if: ${{ needs.build_package.outputs.deploy == 'true' && github.event.repository.private == false }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras --group dev
+      - name: Upload Docs
+        id: docs
+        uses: ./actions/python/autogenerate-docs
+        with:
+          docs-dir: ${{ inputs.docs-dir }}
+          src-dir: ${{ inputs.src-dir-docs }}
+          mode: "release"
+
+  tag:
+    name: 🔖 Create Release Tag
+    runs-on: ubuntu-latest
+    needs: [build_package]
+    if: ${{ needs.build_package.outputs.deploy == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create Git Tag
+        env:
+          VERSION: ${{ needs.build_package.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
+
+  codeql:
+    name: 🛡️ CodeQL Analysis
+    if: ${{ github.event.repository.private == false }}
+    needs: [tag, build_package]
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
