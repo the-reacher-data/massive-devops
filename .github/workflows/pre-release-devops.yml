@@ -12,6 +12,7 @@ env:
   PYTHON_VERSION: "3.12"
   DOCS_DIR: "docs"
   SRC_DIR_DOCS: "actions"
+
 jobs:
   pre-release-checks:
     runs-on: ubuntu-latest
@@ -23,7 +24,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - uses: astral-sh/setup-uv@v3
       - run: uv sync --all-extras
@@ -55,12 +56,12 @@ jobs:
           ref: ${{ github.head_ref }}
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: astral-sh/setup-uv@v3
       - run: uv sync --all-extras
       - name: Autogenerate Docs
         uses: ./actions/python/autogenerate-docs
         with:
-          src-dir: ${{ SRC_DIR_DOCS }}
-          docs-dir: ${{ DOCS_DIR }}
+          src-dir: ${{ env.SRC_DIR_DOCS }}
+          docs-dir: ${{ env.DOCS_DIR }}
           mode: "pr"

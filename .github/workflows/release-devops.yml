@@ -84,7 +84,7 @@ jobs:
           fi
           echo "✅ Found branch: $branch"
           echo "branch=$branch" >> $GITHUB_OUTPUT
-  build_package:
+  build_version:
     name: 📝 Generate Version
     runs-on: ubuntu-latest
     needs: [detect-branch]
@@ -97,9 +97,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: astral-sh/setup-uv@v3
-      - run: uv sync --all-extras --group dev
+      - run: uv sync --all-extras
 
       - name: Get Version Branch Semantic
         id: version
@@ -144,8 +144,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.docs.outputs.page-url }}
-    needs: [build_package]
-    if: ${{ needs.build_package.outputs.deploy == 'true' && github.event.repository.private == false }}
+    needs: [build_version]
+    if: ${{ needs.build_version.outputs.deploy == 'true' && github.event.repository.private == false }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -159,22 +159,22 @@ jobs:
         id: docs
         uses: ./actions/python/autogenerate-docs
         with:
-          docs-dir: ${{ DOCS_DIR }}
-          src-dir: ${{ SRC_DIR_DOCS }}
+          docs-dir: ${{ env.DOCS_DIR }}
+          src-dir: ${{ env.SRC_DIR_DOCS }}
           mode: "release"
 
   tag:
     name: 🔖 Create Release Tag
     runs-on: ubuntu-latest
-    needs: [build_package]
-    if: ${{ needs.build_package.outputs.deploy == 'true' }}
+    needs: [build_version]
+    if: ${{ needs.build_version.outputs.deploy == 'true' }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Create Git Tag
         env:
-          VERSION: ${{ needs.build_package.outputs.version }}
+          VERSION: ${{ needs.build_version.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
