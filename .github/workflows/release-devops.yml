@@ -152,9 +152,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ PYTHON_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
       - uses: astral-sh/setup-uv@v3
-      - run: uv sync --all-extras --group dev
+      - run: uv sync --all-extras
       - name: Upload Docs
         id: docs
         uses: ./actions/python/autogenerate-docs

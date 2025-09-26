@@ -76,8 +76,10 @@ def get_commit_squash() -> dict[str, Any]:
     """
     Retrieve the squash commit (subject + body).
 
-    Each non-empty line in the body is treated as a commit message.
-    Leading `*` or `-` characters are stripped to avoid double markers.
+    Rules:
+    - Lines starting with '* ' or '** ' or matching conventional commit pattern
+      → treated as a new commit.
+    - Lines starting with '-' → appended to the previous commit's body.
     """
     raw = subprocess.check_output(
         ["git", "log", "-1", "--pretty=format:%h|%H|%s|%b"], text=True
@@ -85,14 +87,31 @@ def get_commit_squash() -> dict[str, Any]:
     short, full, subject, body = raw.split("|", 3)
 
     commits: list[dict[str, str]] = []
+    current: dict[str, str] | None = None
+
     for line in (line.strip() for line in body.splitlines()):
         if not line or line.lower().startswith("wip:"):
             continue
+        if line.startswith("*") or re.match(r"^\w+(\([^)]*\))?:", line):
+            # Flush previous commit
+            if current:
+                commits.append(current)
 
-        # Normalize bullet points in squash body
-        cleaned = re.sub(r"^[*-]\s*", "", line)
-
-        commits.append({"subject": cleaned, "body": ""})
+            cleaned = re.sub(r"^[*]+\s*", "", line)
+            current = {"subject": cleaned, "body": ""}
+        elif line.startswith("-") and current:
+            detail = re.sub(r"^-\s*", "", line)
+            if current["body"]:
+                current["body"] += "\n" + detail
+            else:
+                current["body"] = detail
+        elif current:
+            if current["body"]:
+                current["body"] += "\n" + line
+            else:
+                current["body"] = line
+    if current:
+        commits.append(current)
 
     return {"sha": short, "sha_full": full, "subject": subject, "commits": commits}
 
