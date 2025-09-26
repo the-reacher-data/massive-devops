@@ -1,0 +1,97 @@
+# === PROFESSIONAL PYTHON DEVELOPMENT RULES ===
+
+## Code Quality Standards
+
+- Always follow PEP 8 and PEP 484 type hints
+- Use Google-style docstrings for all public methods and classes
+- Implement SOLID principles in all code
+- Follow Clean Architecture patterns
+- Use dependency injection for better testability
+- Prefer composition over inheritance
+- Use dataclasses for data containers
+- Implement proper error handling with Result pattern
+
+## Performance Optimizations
+
+- Use async/await for I/O operations
+- Implement proper caching strategies
+- Use connection pooling for databases
+- Optimize imports (avoid circular imports)
+- Use generators for large datasets
+- Implement lazy loading where appropriate
+- Use proper data structures for performance
+- Profile code before optimizing
+
+## Security Best Practices
+
+- Never hardcode secrets or credentials
+- Use environment variables for configuration
+- Implement proper input validation
+- Use parameterized queries for databases
+- Implement proper authentication and authorization
+- Follow OWASP guidelines
+- Use secure coding practices
+
+## Testing Standards
+
+- Write unit tests for all business logic
+- Achieve minimum 85% code coverage
+- Use pytest for testing framework
+- Mock external dependencies
+- Write integration tests for APIs
+- Use test fixtures for common setup
+- Implement property-based testing where appropriate
+
+## Documentation Standards
+
+- Write comprehensive docstrings
+- Include type hints for all parameters and return values
+- Document complex algorithms and business logic
+- Keep README.md updated
+- Document API endpoints with examples
+- Include error handling documentation
+
+## Git and Version Control
+
+- Use conventional commits
+- Write descriptive commit messages
+- Keep commits atomic and focused
+- Use feature branches for development
+- Implement proper CI/CD pipelines
+- Use semantic versioning
+
+## Code Organization
+
+- Follow the src/ layout
+- Organize code by feature, not by type
+- Use proper package structure
+- Implement proper __init__.py files
+- Use relative imports within packages
+- Avoid deep nesting (max 4 levels)
+
+## Error Handling
+
+- Use Result pattern for error handling
+- Implement proper logging
+- Use structured logging with context
+- Handle exceptions at appropriate levels
+- Provide meaningful error messages
+- Implement retry mechanisms where appropriate
+
+## Performance Monitoring
+
+- Implement proper logging
+- Use metrics and monitoring
+- Implement health checks
+- Monitor resource usage
+- Implement proper alerting
+- Use profiling tools
+
+## Code Review Standards
+
+- Review for security vulnerabilities
+- Check for performance issues
+- Verify test coverage
+- Ensure proper documentation
+- Check for code smells
+- Verify SOLID principles adherence

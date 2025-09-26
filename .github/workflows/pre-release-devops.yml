@@ -1,0 +1,67 @@
+name: 🚀 Pre-Release Devops
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PYTHON_VERSION: "3.12"
+  DOCS_DIR: "docs"
+  SRC_DIR_DOCS: "actions"
+
+jobs:
+  pre-release-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+
+      - name: Versioning Branch Semantic
+        id: version
+        uses: ./actions/devops/versioning-branch-semantic
+        with:
+          branch: ${{ github.head_ref }}
+          prerelease: "true"
+
+      - name: Changelog Conventional Commit
+        uses: ./actions/devops/changelog-conventional-commit
+        with:
+          mode: "pr"
+          branch: ${{ github.head_ref }}
+          version: ${{ steps.version.outputs.version }}
+          github-token: ${{ SECRETS.GITHUB_TOKEN }}
+          output: changelog_preview.md
+
+  preview-docs:
+    name: 📚 Documentation(Autogenerate)
+    needs: [pre-release-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - name: Autogenerate Docs
+        uses: ./actions/python/autogenerate-docs
+        with:
+          src-dir: ${{ env.SRC_DIR_DOCS }}
+          docs-dir: ${{ env.DOCS_DIR }}
+          mode: "pr"

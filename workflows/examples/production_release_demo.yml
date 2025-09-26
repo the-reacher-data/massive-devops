@@ -1,0 +1,33 @@
+# WARNING: This is a demo workflow that may not work out of the box
+# It's provided as an example of how to use the Massive DevOps workflows
+# You may need to adjust paths, secrets, and configurations for your project
+
+name: 🚀 Production Release Demo
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "pyproject.toml"
+
+jobs:
+  production-release:
+    uses: the-reacher-data/massive-devops/workflows/python/production_release.yml@v1
+    with:
+      python-version: "3.12"
+      pypi-url: "https://upload.pypi.org/legacy/"
+      src-dir-docs: "src"
+      github-sha: ${{ github.sha }}
+    permissions:
+      contents: write
+      pull-requests: read
+      id-token: write
+      pages: write
+      security-events: write
+      actions: read
+
+    secrets:
+      pypi-secret: ${{ secrets.PYPI_API_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
