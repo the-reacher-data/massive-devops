@@ -47,7 +47,7 @@ jobs:
 
   preview-docs:
     name: 📚 Documentation(Autogenerate)
-    needs: [build_and_publish]
+    needs: [pre-release-checks]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
