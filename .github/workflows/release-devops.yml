@@ -115,7 +115,7 @@ jobs:
           branch: ${{ needs.detect-branch.outputs.branch }}
           version: ${{ steps.version.outputs.version }}
           pr-number: ${{ needs.detect-branch.outputs.pr-number }}
-          output: version.md
+          output: CHANGELOG.md
 
       - name: 🔄 Commit version bump and changelog to release branch
         id: commit
@@ -136,13 +136,15 @@ jobs:
           fi
 
           if [[ "$VERSION" != "UNRELEASED" ]]; then
+            COMMIT_MESSAGE="chore(release): ${VERSION} (#${PR_NUMBER})"
             git commit -m "chore(release): ${VERSION} (#${PR_NUMBER})"
           else
-            git commit -m "docs(changelog): update changelog (#${PR_NUMBER})"
+            COMMIT_MESSAGE="docs(changelog): update changelog (#${PR_NUMBER})"
           fi
-
+          git commit -m "$COMMIT_MESSAGE"
           git push origin $RELEASE_BRANCH
           echo "branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "commit-message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
 
       - name: 🔄 Open PR for release branch
         uses: peter-evans/create-pull-request@v6
@@ -150,13 +152,14 @@ jobs:
         with:
           branch: ${{ steps.commit.outputs.branch }}
           base: main
-          title: "chore(release): ${{ steps.version.outputs.version }}"
+          title: ${{ steps.commit.outputs.commit-message }}
           body: |
             Automated release PR for version **${{ steps.version.outputs.version }}**
             PR original: #${{ inputs.pr-number }}
           token: ${{ SECRETS.GITHUB_TOKEN }}
           draft: false
           delete-branch: true
+          commit-message: ${{ steps.commit.outputs.commit-message }}
 
       - name: 🔄 Enable auto-merge (squash)
         run: |
