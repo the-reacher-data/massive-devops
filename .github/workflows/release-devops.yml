@@ -117,7 +117,7 @@ jobs:
           pr-number: ${{ needs.detect-branch.outputs.pr-number }}
           output: version.md
 
-      - name: Commit version bump and changelog to release branch
+      - name: 🔄 Commit version bump and changelog to release branch
         id: commit
         run: |
           VERSION=${{ steps.version.outputs.version }}
@@ -144,7 +144,7 @@ jobs:
           git push origin $RELEASE_BRANCH
           echo "branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
 
-      - name: Open PR for release branch
+      - name: 🔄 Open PR for release branch
         uses: peter-evans/create-pull-request@v6
         id: cpr
         with:
@@ -158,7 +158,7 @@ jobs:
           draft: false
           delete-branch: true
 
-      - name: Enable auto-merge (squash)
+      - name: 🔄 Enable auto-merge (squash)
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --repo ${{ github.repository }}
         env:
