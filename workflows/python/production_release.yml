@@ -203,10 +203,14 @@ jobs:
           pypi-user-name: ${{ inputs.pypi-user-name }}
           pypi-secret: ${{ secrets.pypi-secret }}
 
-      - name: Commit version bump and changelog
+      - name: 🔄 Commit version bump and changelog to release branch
+        id: commit
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          PR_NUMBER=${{ needs.detect-branch.outputs.pr-number }}
+          PR_NUMBER=${{ inputs.pr-number }}
+          RELEASE_BRANCH="release/${VERSION}"
+          DEPLOY=${{ steps.version.outputs.deploy }}
+          echo "VERSION: $VERSION, PR_NUMBER: $PR_NUMBER, RELEASE_BRANCH: $RELEASE_BRANCH, DEPLOY: $DEPLOY"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -216,13 +220,38 @@ jobs:
               echo "🔄 This is a re-run (attempt $GITHUB_RUN_ATTEMPT)"
               exit 0
           fi
+
           if [[ "$VERSION" != "UNRELEASED" ]]; then
-            git commit -m "chore(release): ${VERSION} (#${PR_NUMBER})"
+            COMMIT_MESSAGE="chore(release): ${VERSION} (#${PR_NUMBER})"
           else
-            git commit -m "docs(changelog): update changelog (#${PR_NUMBER})"
+            COMMIT_MESSAGE="docs(changelog): update changelog (#${PR_NUMBER})"
           fi
-          git push
-          echo "✅ Committed with changes"
+          echo "branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "commit-message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+
+      - name: 🔄 Open PR for release branch
+        uses: peter-evans/create-pull-request@v6
+        id: cpr
+        with:
+          branch: ${{ steps.commit.outputs.branch }}
+          base: main
+          title: ${{ steps.commit.outputs.commit-message }}
+          body: |
+            Automated release PR for version **${{ steps.version.outputs.version }}**
+            PR original: #${{ inputs.pr-number }}
+          token: ${{ SECRETS.GITHUB_TOKEN }}
+          draft: false
+          delete-branch: true
+          add-paths: CHANGELOG.md, pyproject.toml
+          commit-message: ${{ steps.commit.outputs.commit-message }}
+
+      - name: 🔄 Enable auto-merge (squash)
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --repo ${{ github.repository }}
+          echo "✅ Auto-merged PR ${{ steps.cpr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
+
 
   publish_docs:
     name: 📚 Publish Docs
