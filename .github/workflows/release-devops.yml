@@ -115,7 +115,7 @@ jobs:
           branch: ${{ needs.detect-branch.outputs.branch }}
           version: ${{ steps.version.outputs.version }}
           pr-number: ${{ needs.detect-branch.outputs.pr-number }}
-          output: CHANGELOG.md
+          output: version.md
 
       - name: 🔄 Commit version bump and changelog to release branch
         id: commit
@@ -123,7 +123,8 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           PR_NUMBER=${{ inputs.pr-number }}
           RELEASE_BRANCH="release/${VERSION}"
-          echo "VERSION: $VERSION, PR_NUMBER: $PR_NUMBER, RELEASE_BRANCH: $RELEASE_BRANCH"
+          DEPLOY=${{ steps.version.outputs.deploy }}
+          echo "VERSION: $VERSION, PR_NUMBER: $PR_NUMBER, RELEASE_BRANCH: $RELEASE_BRANCH, DEPLOY: $DEPLOY"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
