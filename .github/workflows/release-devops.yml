@@ -120,7 +120,7 @@ jobs:
       - name: Commit version bump and changelog to release branch
         id: commit
         run: |
-          VERSION=${{ needs.versioning.outputs.version }}
+          VERSION=${{ steps.version.outputs.version }}
           PR_NUMBER=${{ inputs.pr-number }}
           RELEASE_BRANCH="release/${VERSION}"
 
@@ -146,14 +146,15 @@ jobs:
 
       - name: Open PR for release branch
         uses: peter-evans/create-pull-request@v6
+        id: cpr
         with:
           branch: ${{ steps.commit.outputs.branch }}
           base: main
-          title: "chore(release): ${{ needs.versioning.outputs.version }}"
+          title: "chore(release): ${{ steps.version.outputs.version }}"
           body: |
-            Automated release PR for version **${{ needs.versioning.outputs.version }}**
+            Automated release PR for version **${{ steps.version.outputs.version }}**
             PR original: #${{ inputs.pr-number }}
-          token: ${{ secrets.github-token }}
+          token: ${{ SECRETS.GITHUB_TOKEN }}
           draft: false
           delete-branch: true
 
@@ -161,7 +162,7 @@ jobs:
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --repo ${{ github.repository }}
         env:
-          GH_TOKEN: ${{ secrets.github-token }}
+          GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
 
 
   publish_docs:
