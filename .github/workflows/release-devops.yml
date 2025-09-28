@@ -123,7 +123,7 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           PR_NUMBER=${{ inputs.pr-number }}
           RELEASE_BRANCH="release/${VERSION}"
-
+          echo "VERSION: $VERSION, PR_NUMBER: $PR_NUMBER, RELEASE_BRANCH: $RELEASE_BRANCH"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -167,7 +167,6 @@ jobs:
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ SECRETS.GITHUB_TOKEN }}
-
 
 
   publish_docs:
