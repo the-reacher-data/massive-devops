@@ -1,9 +1,21 @@
 name: 🚀 Release Workflow
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+  pages: write
+  security-events: write
+  actions: read
+
 concurrency:
     group: release-${{ github.ref }}
     cancel-in-progress: false
 on:
+  paths-ignore:
+    - "CHANGELOG.md"
+    - "pyproject.toml"
+
   workflow_call:
     inputs:
       python-version:

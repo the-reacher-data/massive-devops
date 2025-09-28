@@ -17,7 +17,7 @@ env:
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
   id-token: write
   pages: write
   actions: read
@@ -117,26 +117,52 @@ jobs:
           pr-number: ${{ needs.detect-branch.outputs.pr-number }}
           output: version.md
 
-      - name: Commit version bump and changelog
+      - name: Commit version bump and changelog to release branch
+        id: commit
         run: |
-          VERSION=${{ steps.version.outputs.version }}
-          PR_NUMBER=${{ needs.detect-branch.outputs.pr-number }}
+          VERSION=${{ needs.versioning.outputs.version }}
+          PR_NUMBER=${{ inputs.pr-number }}
+          RELEASE_BRANCH="release/${VERSION}"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          git checkout -b $RELEASE_BRANCH
           git add pyproject.toml CHANGELOG.md || true
 
           if [[ "$GITHUB_RUN_ATTEMPT" -gt 1 ]]; then
               echo "🔄 This is a re-run (attempt $GITHUB_RUN_ATTEMPT)"
               exit 0
           fi
+
           if [[ "$VERSION" != "UNRELEASED" ]]; then
             git commit -m "chore(release): ${VERSION} (#${PR_NUMBER})"
           else
             git commit -m "docs(changelog): update changelog (#${PR_NUMBER})"
           fi
-          git push
-          echo "✅ Committed with changes"
+
+          git push origin $RELEASE_BRANCH
+          echo "branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Open PR for release branch
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ steps.commit.outputs.branch }}
+          base: main
+          title: "chore(release): ${{ needs.versioning.outputs.version }}"
+          body: |
+            Automated release PR for version **${{ needs.versioning.outputs.version }}**
+            PR original: #${{ inputs.pr-number }}
+          token: ${{ secrets.github-token }}
+          draft: false
+          delete-branch: true
+
+      - name: Enable auto-merge (squash)
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.github-token }}
+
 
   publish_docs:
     name: 📚 Publish Docs
