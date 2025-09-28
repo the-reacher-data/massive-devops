@@ -3,6 +3,9 @@ name: 🚀 Pre-Release Devops
 on:
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "pyproject.toml"
 
 permissions:
   contents: read
