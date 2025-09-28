@@ -137,12 +137,12 @@ jobs:
 
           if [[ "$VERSION" != "UNRELEASED" ]]; then
             COMMIT_MESSAGE="chore(release): ${VERSION} (#${PR_NUMBER})"
-            git commit -m "chore(release): ${VERSION} (#${PR_NUMBER})"
           else
             COMMIT_MESSAGE="docs(changelog): update changelog (#${PR_NUMBER})"
           fi
           git commit -m "$COMMIT_MESSAGE"
           git push origin $RELEASE_BRANCH
+          git rm --cached uv.lock || true # Remove uv.lock from commit
           echo "branch=$RELEASE_BRANCH" >> $GITHUB_OUTPUT
           echo "commit-message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
 
