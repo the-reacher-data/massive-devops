@@ -89,27 +89,25 @@ def get_commit_squash() -> dict[str, Any]:
     commits: list[dict[str, str]] = []
     current: dict[str, str] | None = None
 
+    conv = re.compile(r"^\w+(\([^)]*\))?:\s+")
     for line in (line.strip() for line in body.splitlines()):
         if not line or line.lower().startswith("wip:"):
             continue
-        if line.startswith("*") or re.match(r"^\w+(\([^)]*\))?:", line):
-            # Flush previous commit
+
+        if line.startswith("*") or line.startswith("**") or conv.match(line):
             if current:
                 commits.append(current)
 
             cleaned = re.sub(r"^[*]+\s*", "", line)
             current = {"subject": cleaned, "body": ""}
+
         elif line.startswith("-") and current:
             detail = re.sub(r"^-\s*", "", line)
-            if current["body"]:
-                current["body"] += "\n" + detail
-            else:
-                current["body"] = detail
+            current["body"] += ("\n" if current["body"] else "") + detail
+
         elif current:
-            if current["body"]:
-                current["body"] += "\n" + line
-            else:
-                current["body"] = line
+            current["body"] += ("\n" if current["body"] else "") + line
+
     if current:
         commits.append(current)
 
