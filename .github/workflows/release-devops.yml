@@ -159,6 +159,7 @@ jobs:
           token: ${{ SECRETS.GITHUB_TOKEN }}
           draft: false
           delete-branch: true
+          add-paths: CHANGELOG.md, pyproject.toml
           commit-message: ${{ steps.commit.outputs.commit-message }}
 
       - name: 🔄 Enable auto-merge (squash)
