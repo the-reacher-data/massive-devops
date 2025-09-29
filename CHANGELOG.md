@@ -1,3 +1,34 @@
+# 🚀 Release 1.0.0 ([#17](https://github.com/the-reacher-data/massive-devops/pull/17)) ([`4ca5199`](https://github.com/the-reacher-data/massive-devops/commit/4ca519904e367411e48a6b3324a3579c78c7ccb9))
+
+
+
+
+## 📖 Documentation
+### (no scope)
+- fix broken doc links after folder restructuring<br>
+  > Replace absolute links pointing to /workflows/python/...
+  > with relative /actions/python/... or correct anchor inside README.
+  > Remove obsolete references to deleted /docs/workflows folder.
+
+
+
+
+
+
+
+## 🛠 Chores
+### release
+- **release:** public workflows + docs overhaul<br>
+  > Our Python CI/CD workflows are now **publicly reusable**
+  > Full badge dashboard in README
+  > Up-to-date docs and fixed cross-links
+  > Repository ready for showcase / external consumption
+  > No functional changes; paths inside workflows updated accordingly.
+
+
+
+
+
 # 🚀 Release 0.1.0 ([#15](https://github.com/the-reacher-data/massive-devops/pull/15)) ([`47f36b2`](https://github.com/the-reacher-data/massive-devops/commit/47f36b2b72d56f7e0c7e8763d5af355e7cc5901f))
 
 
