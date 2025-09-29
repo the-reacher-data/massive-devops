@@ -1,5 +1,9 @@
 # Massive DevOps
 
+![CI](https://github.com/the-reacher-data/massive-devops/actions/workflows/release-devops.yml/badge.svg)
+![License](https://img.shields.io/github/license/the-reacher-data/massive-devops)
+![Repo Size](https://img.shields.io/github/repo-size/the-reacher-data/massive-devops)
+
 A comprehensive collection of GitHub Actions designed for Python projects using **Trunk-Based Development** and **Conventional Commits**. This repository provides a complete DevOps toolkit that automates code quality, testing, security analysis, documentation generation, and package publishing.
 
 > **Status**: This project is currently in development but already functional. All actions are working and can be used in production environments.
@@ -221,7 +225,7 @@ exclude_dirs = ["tests", "migrations"]
 
 This repository includes **two complementary workflows** designed to work together:
 
-#### 1. Pre-Release Workflow (`workflows/python/pre_release.yml`)
+#### 1. Pre-Release Workflow (`.github/workflows/python/pre_release.yml`)
 
 **Purpose**: Handles Pull Request validation and pre-release testing.
 
@@ -236,7 +240,7 @@ This repository includes **two complementary workflows** designed to work togeth
 - 📚 **Documentation Preview**: Generates documentation preview
 - 📝 **Changelog Preview**: Generates changelog from conventional commits
 
-#### 2. Production Release Workflow (`workflows/python/production_release.yml`)
+#### 2. Production Release Workflow (`.github/workflows/python/production_release.yml`)
 
 **Purpose**: Handles production releases and deployment.
 
@@ -308,7 +312,7 @@ jobs:
       id-token: write
 ```
 
-For detailed workflow documentation, see [workflows/python/README.md](workflows/python/README.md).
+For detailed workflow documentation, see [workflows/python/README.md](.github/workflows/python/README.md).
 
 ## 🤝 Contributing
 
@@ -324,7 +328,7 @@ This project is actively developed and welcomes contributions:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/massive-devops.git
+git clone https://github.com/the-reacher-data/massive-devops.git
 cd massive-devops
 
 # Install dependencies
@@ -351,9 +355,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-org/massive-devops/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/massive-devops/discussions)
-- **Documentation**: [Project Wiki](https://github.com/your-org/massive-devops/wiki)
+- **Issues**: [GitHub Issues](https://github.com/the-reacher-data/massive-devops/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/the-reacher-data/massive-devops/discussions)
+- **Documentation**: [Project Wiki](https://the-reacher-data.github.io/massive-devops/)
 
 ---
 
