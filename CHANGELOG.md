@@ -1,3 +1,24 @@
+# 🚀 Release 1.0.1 ([#19](https://github.com/the-reacher-data/massive-devops/pull/19)) ([`dbcfa8c`](https://github.com/the-reacher-data/massive-devops/commit/dbcfa8cf026d539e67b972ad281672ed7992c876))
+
+
+## ✨ Features
+### workflows
+- **workflows:** create major tag
+
+
+## 🐛 Fixes
+### workflows
+- **workflows:** move files
+
+
+
+
+
+
+
+
+
+
 # 🚀 Release 1.0.0 ([#17](https://github.com/the-reacher-data/massive-devops/pull/17)) ([`4ca5199`](https://github.com/the-reacher-data/massive-devops/commit/4ca519904e367411e48a6b3324a3579c78c7ccb9))
 
 
