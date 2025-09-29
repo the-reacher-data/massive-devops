@@ -8,7 +8,7 @@ This directory contains reusable GitHub Actions workflows specifically designed 
 
 ## 📋 Available Workflows
 
-### 1. Pre-Release Workflow (`pre_release.yml`)
+### 1. Pre-Release Workflow (`pre-release-python.yml`)
 
 **Purpose**: Handles Pull Request validation and pre-release testing.
 
@@ -28,7 +28,7 @@ This directory contains reusable GitHub Actions workflows specifically designed 
 
 **Output**: TestPyPI package, PR comments with reports
 
-### 2. Production Release Workflow (`production_release.yml`)
+### 2. Production Release Workflow (`production-release-python.yml`)
 
 **Purpose**: Handles production releases and deployment.
 
@@ -78,7 +78,7 @@ on:
 jobs:
   pre-release:
     if: github.event_name == 'pull_request'
-    uses: ./.github/workflows/python/pre_release.yml
+    uses: ./.github/workflows/pre-release-python.yml
     with:
       python-version: "3.11"
       src-dir: "src"
@@ -93,7 +93,7 @@ jobs:
 
   production-release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/python/production_release.yml
+    uses: ./.github/workflows/production-release-python.yml
     with:
       python-version: "3.11"
       src-dir: "src"
@@ -122,7 +122,7 @@ on:
 
 jobs:
   checks:
-    uses: ./.github/workflows/python/pre_release.yml
+    uses: ./.github/workflows/pr-release-python.yml
     with:
       python-version: "3.11"
     secrets:
@@ -176,9 +176,9 @@ your-python-project/
 
 ## 📚 Documentation
 
-- **Main README**: [../README.md](../README.md) - Complete project documentation
+- **Main README**: [../../README.md](../../README.md) - Complete project documentation
 - **Action Documentation**: [../../actions/](../../actions/) - Individual action documentation
-- **Examples**: [../examples/](../examples/) - Demo workflows
+- **Examples**: [../examples/](../../examples/) - Demo workflows
 
 ## 🤝 Contributing
 
@@ -191,9 +191,9 @@ When contributing to these workflows:
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-org/massive-devops/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/massive-devops/discussions)
-- **Documentation**: [Project Wiki](https://github.com/your-org/massive-devops/wiki)
+- **Issues**: [GitHub Issues](https://github.com/the-reacher-data/massive-devops/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/the-reacher-data/massive-devops/discussions)
+- **Documentation**: [Project Wiki](https://the-reacher-data.github.io/massive-devops//)
 
 ---
 

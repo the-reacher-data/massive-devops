@@ -209,3 +209,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "v${VERSION}"
           git push origin "v${VERSION}"
+
+          MAJOR=$(echo "${VERSION}" | cut -d. -f1)
+          echo "MAJOR: $MAJOR and VERSION: $VERSION"
+
+          git push origin ":refs/tags/v${MAJOR}" || true
+          git tag -a "v${MAJOR}" -m "Release v${VERSION} (major tag v${MAJOR})"
+          git push origin "v${MAJOR}" --force
