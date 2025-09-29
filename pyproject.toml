@@ -133,7 +133,6 @@ prerelease = [
     "feat/.*",
     "multifeature/.*",
     "breaking/.*",
-    "feat!/.*",
     "fix/.*",
 ]
 patch = [
@@ -147,7 +146,6 @@ minor = [
 ]
 major = [
     "breaking/.*",
-    "feat!/.*",
 ]
 prerelease_ignore = [
     "docs/.*",
